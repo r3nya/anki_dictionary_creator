@@ -44,7 +44,24 @@ jobs:
             exit 1
           fi
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+      - name: Generate Changelog
+        id: changelog
+        shell: bash
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREVIOUS_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"* %s")
+          else
+            CHANGELOG=$(git log --pretty=format:"* %s" $PREVIOUS_TAG..HEAD)
+          fi
 
+          # Escape special characters for GitHub Actions output
+          CHANGELOG="${CHANGELOG//'%'/'%25'}"
+          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
+
+          # Set the output
+          echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -55,7 +72,7 @@ jobs:
           release_name: Release ${{ steps.get_version.outputs.VERSION }}
           body: |
             Changes in this Release:
-            ${{ steps.changelog.outputs.CHANGELOG }}
+            ${{ steps.changelog.outputs.changelog }}
           draft: false
           prerelease: false
         if: matrix.os == 'ubuntu-latest' # Create release only once
