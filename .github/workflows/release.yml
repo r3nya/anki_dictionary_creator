@@ -76,6 +76,14 @@ jobs:
           draft: false
           prerelease: false
         if: matrix.os == 'ubuntu-latest' # Create release only once
+
+      - name: Debug Release Creation
+        if: matrix.os == 'ubuntu-latest' && steps.create_release.outcome == 'failure'
+        run: |
+          echo "Release creation failed"
+          echo "Version: v${{ steps.get_version.outputs.VERSION }}"
+          echo "Changelog: ${{ steps.changelog.outputs.changelog }}"
+
       - name: Upload Release Asset (Ubuntu)
         uses: actions/upload-release-asset@v1
         env:
@@ -86,6 +94,7 @@ jobs:
           asset_name: anki_dictionary_creator-${{ steps.get_version.outputs.VERSION }}-linux-x86_64
           asset_content_type: application/octet-stream
         if: matrix.os == 'ubuntu-latest'
+
       - name: Upload Release Asset (Windows)
         uses: actions/upload-release-asset@v1
         env:
