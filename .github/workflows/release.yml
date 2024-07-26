@@ -27,6 +27,7 @@ jobs:
         with:
           command: build
           args: --release --verbose
+
       - name: Get Version
         id: get_version
         run: |
